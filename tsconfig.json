@@ -11,7 +11,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "declaration": true,
-    "noEmit": true
+    "noEmit": true,
+    // @papercusp/sse's barrel export pulls its server half (Node timers) into
+    // this program; node types make those files typecheck here exactly as they
+    // do in the consuming apps.
+    "types": ["node"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

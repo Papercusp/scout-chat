@@ -14,11 +14,17 @@
 export function prefillForm(fields: Array<{ field?: unknown; value?: unknown }>): void {
   if (typeof document === 'undefined' || !fields.length) return;
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  // CSS.escape is missing in some environments (jsdom test runs, old browsers);
+  // fall back to escaping the attribute-selector-breaking chars.
+  const cssEscape = (s: string): string =>
+    typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+      ? CSS.escape(s)
+      : s.replace(/["\\\]]/g, '\\$&');
   const labelText = (el: Element): string => {
     let t = '';
     const id = el.getAttribute('id');
     if (id) {
-      const lbl = document.querySelector(`label[for="${CSS.escape(id)}"]`);
+      const lbl = document.querySelector(`label[for="${cssEscape(id)}"]`);
       if (lbl?.textContent) t += ' ' + lbl.textContent;
     }
     const wrap = el.closest('label');
