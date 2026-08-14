@@ -64,4 +64,27 @@ describe('createHttpChatTransport', () => {
       },
     ]);
   });
+
+  it('lets an app adapt the first-turn body without replacing reconnect handling', async () => {
+    const bodies: unknown[] = [];
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      bodies.push(JSON.parse(String(init?.body)));
+      return new Response('id: 1\ndata: {"type":"done"}\n\n', {
+        status: 200,
+        headers: { 'Content-Type': 'text/event-stream', 'X-Scout-Turn-Id': 'turn-1' },
+      });
+    };
+    const transport = createHttpChatTransport({
+      fetchImpl,
+      buildBody: (turn, resume) => resume
+        ? { turnId: resume.turnId, lastEventId: resume.lastEventId }
+        : { message: turn.message, cartId: 'cart-7' },
+    });
+
+    for await (const _event of transport.streamTurn({ message: 'show my cart', sessionId: null })) {
+      // drain the terminal event
+    }
+
+    expect(bodies).toEqual([{ message: 'show my cart', cartId: 'cart-7' }]);
+  });
 });

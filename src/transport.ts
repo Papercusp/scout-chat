@@ -15,6 +15,15 @@ export interface HttpChatTransportOptions {
   terminalTypes?: string[];
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: typeof fetch;
+  /**
+   * App-specific wire-body adapter. The default preserves `buildTurnBody`;
+   * consumers may promote a bounded part of `pageContext` into an established
+   * backend request shape without forking the reconnect-safe transport.
+   */
+  buildBody?: (
+    turn: ChatTurnRequest,
+    resume: ResilientPostResume | null,
+  ) => Record<string, unknown>;
 }
 
 /**
@@ -56,7 +65,7 @@ export function createHttpChatTransport(opts: HttpChatTransportOptions = {}): Ch
       for await (const ev of resilientPostStream<Record<string, unknown>>({
         url: chatUrl,
         turnIdHeader,
-        buildBody: (resume) => buildTurnBody(turn, resume),
+        buildBody: (resume) => (opts.buildBody ?? buildTurnBody)(turn, resume),
         isTerminal: (d) => terminal.has(String((d as { type?: unknown }).type)),
         ...(streamOpts?.signal ? { signal: streamOpts.signal } : {}),
         ...(opts.fetchImpl ? { fetchImpl: opts.fetchImpl } : {}),
