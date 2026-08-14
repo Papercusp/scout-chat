@@ -1,0 +1,29 @@
+{
+  "name": "@papercusp/scout-chat",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Themable, backend-agnostic Scout chat drawer: Vaul panel + @papercusp/drawer-stack registration, streaming transcript + composer over @papercusp/sse resilientPostStream (Last-Event-ID turn resume), @papercusp/chat-protocol interactive cards, ETag/304 transcript restore via @papercusp/data-fetch. All endpoints + session identity stay behind a ChatTransport adapter; all visual identity flows through --sc-* CSS custom properties.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": { "types": "./src/index.ts", "import": "./src/index.ts", "default": "./src/index.ts" },
+    "./styles.css": "./src/styles.css"
+  },
+  "sideEffects": ["*.css"],
+  "scripts": {
+    "test": "vitest run --passWithNoTests"
+  },
+  "peerDependencies": {
+    "@papercusp/chat-protocol": "*",
+    "@papercusp/data-fetch": "*",
+    "@papercusp/drawer-stack": "*",
+    "@papercusp/sse": "*",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
+    "vaul": ">=1.1.0"
+  },
+  "devDependencies": {
+    "@papercusp/test-config": "*",
+    "vitest": "^4.1.5"
+  }
+}
