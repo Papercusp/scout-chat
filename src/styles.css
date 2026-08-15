@@ -401,14 +401,6 @@
   padding-left: 2.25rem;
 }
 
-/* The app renderer owns its card/rail layout. It is one child of this host, so
- * span that child across every host track instead of squeezing a complete rail
- * into the first 1/2 (or 1/3) column. */
-.sc-products > * {
-  min-width: 0;
-  grid-column: 1 / -1;
-}
-
 @media (min-width: 640px) {
   .sc-products { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
