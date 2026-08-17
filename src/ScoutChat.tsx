@@ -30,6 +30,14 @@ export interface ScoutChatStrings {
   /** Prefix for a failed turn; the error message is appended. */
   errorPrefix: string;
   workingStatus: string;
+  /**
+   * Shown verbatim when a turn fails (transport error, HTTP status, or the
+   * transport's idle deadline) INSTEAD of `errorPrefix` + the raw error.
+   * Optional: omitted → the historic `errorPrefix` behaviour. Set it on
+   * user-facing surfaces so a failure reads as a next step rather than
+   * "HTTP 400" (WI-39716).
+   */
+  turnFailedFallback?: string;
 }
 
 const DEFAULT_STRINGS: ScoutChatStrings = {
@@ -270,7 +278,7 @@ export function ScoutChat({
           ...a,
           streaming: false,
           status: undefined,
-          content: `${strings.errorPrefix}${message}`,
+          content: strings.turnFailedFallback ?? `${strings.errorPrefix}${message}`,
         }));
       } finally {
         setLoading(false);

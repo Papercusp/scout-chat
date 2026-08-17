@@ -16,6 +16,13 @@ export interface HttpChatTransportOptions {
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: typeof fetch;
   /**
+   * Fail a turn when the server sends NO frame (heartbeats included) for this
+   * long. Default 0 = off. Must exceed the server's heartbeat interval (10s for
+   * @papercusp/sse). Without it a stalled turn leaves the composer disabled
+   * until a page reload, because the stream never settles (WI-39716).
+   */
+  idleTimeoutMs?: number;
+  /**
    * App-specific wire-body adapter. The default preserves `buildTurnBody`;
    * consumers may promote a bounded part of `pageContext` into an established
    * backend request shape without forking the reconnect-safe transport.
@@ -68,6 +75,7 @@ export function createHttpChatTransport(opts: HttpChatTransportOptions = {}): Ch
         buildBody: (resume) => (opts.buildBody ?? buildTurnBody)(turn, resume),
         isTerminal: (d) => terminal.has(String((d as { type?: unknown }).type)),
         ...(streamOpts?.signal ? { signal: streamOpts.signal } : {}),
+        ...(opts.idleTimeoutMs ? { idleTimeoutMs: opts.idleTimeoutMs } : {}),
         ...(opts.fetchImpl ? { fetchImpl: opts.fetchImpl } : {}),
       })) {
         yield ev.data;
