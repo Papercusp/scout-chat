@@ -11,7 +11,7 @@
   },
   "sideEffects": ["*.css"],
   "scripts": {
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "peerDependencies": {
     "@papercusp/chat-protocol": "*",
