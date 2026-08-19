@@ -11,7 +11,8 @@
   },
   "sideEffects": ["*.css"],
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
     "@papercusp/chat-protocol": "*",
