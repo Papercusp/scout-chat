@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Drawer as VaulDrawer } from 'vaul';
 import { useDrawerStackItem } from '@papercusp/drawer-stack';
 
@@ -53,6 +53,8 @@ export function ScoutChatDrawer({
   children,
 }: ScoutChatDrawerProps) {
   const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   const { Trigger, paneStyle, otherOpen } = useDrawerStackItem({
     id,
@@ -80,6 +82,43 @@ export function ScoutChatDrawer({
     };
   }, [openEvent, openDataAttr]);
 
+  // Initial focus placement. A MODAL dialog gets this for free — the focus
+  // scope moves focus inside on open — but this pane runs `modal={false}` on
+  // purpose (see the note above: the other drawers' triggers must stay
+  // clickable so panes can coexist), and that opt-out takes the automatic
+  // focus move with it. Without this, opening the pane leaves activeElement on
+  // the background launcher: the pane is visible, but a keyboard or
+  // screen-reader user is still outside it and has to Tab in to reach it.
+  //
+  // So place focus explicitly rather than by making the pane modal, and return
+  // it to wherever it came from on close (Escape already restored correctly
+  // only because focus had never actually left the launcher).
+  useEffect(() => {
+    if (!open) return undefined;
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+    // Vaul mounts and animates the pane; wait a frame so the content exists.
+    const frame = requestAnimationFrame(() => {
+      const pane = contentRef.current;
+      if (!pane) return;
+      const focusable = pane.querySelector<HTMLElement>(
+        'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
+      );
+      // Fall back to the pane itself (tabIndex={-1}) when it has no focusable
+      // control, so the user still lands inside the dialog rather than outside.
+      (focusable ?? pane).focus();
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      const restore = returnFocusRef.current;
+      returnFocusRef.current = null;
+      // Only pull focus back if it is still inside the pane we are closing —
+      // otherwise the user has already moved on and we would be stealing it.
+      if (restore?.isConnected && contentRef.current?.contains(document.activeElement)) {
+        restore.focus();
+      }
+    };
+  }, [open]);
+
   return (
     <VaulDrawer.Root direction="right" open={open} onOpenChange={setOpen} modal={false}>
       {/* Launcher — rendered into the shared right-edge trigger stack. */}
@@ -95,6 +134,8 @@ export function ScoutChatDrawer({
 
       <VaulDrawer.Portal>
         <VaulDrawer.Content
+          ref={contentRef}
+          tabIndex={-1}
           aria-label={title}
           className={contentClassName}
           style={{ ...paneStyle, ...contentStyle }}
