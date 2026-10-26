@@ -85,6 +85,8 @@ export interface ScoutChatProps {
   emptyState?: (send: (prompt: string) => void) => ReactNode;
   /** App-supplied product-card grid for `products` events. */
   renderProducts?: (products: unknown[]) => ReactNode;
+  renderMarkdown?: (source: string) => ReactNode;
+  renderResults?: (results: NonNullable<AssistantDisplayItem['results']>, send: (prompt: string) => void) => ReactNode;
   /**
    * Receives every non-display stream event (navigate / highlight /
    * cart_mutate / open_drawer / prefill_form, …) — the app performs the side
@@ -114,6 +116,8 @@ export function ScoutChat({
   headerBadges,
   emptyState,
   renderProducts,
+  renderMarkdown,
+  renderResults,
   onAppEvent,
 }: ScoutChatProps) {
   const strings = useMemo(() => ({ ...DEFAULT_STRINGS, ...stringOverrides }), [stringOverrides]);
@@ -371,6 +375,7 @@ export function ScoutChat({
                   item.streaming &&
                   !item.content &&
                   !item.card &&
+                  !item.results &&
                   item.products.length === 0 &&
                   item.broadenOptions.length === 0
                 ) {
@@ -389,6 +394,9 @@ export function ScoutChat({
                     icon={icon}
                     renderProducts={renderProducts}
                     cardStrings={cardStrings}
+                    results={item.results}
+                    renderResults={renderResults}
+                    renderMarkdown={renderMarkdown}
                   />
                 );
               })}

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BroadenOption } from './types';
+import type { AssistantDisplayItem, BroadenOption } from './types';
 import type { OpenCardSnapshot } from '@papercusp/chat-protocol';
 import { ChatCard, type CardAnswer, type ChatCardStrings } from './ChatCard';
 import { IconChevronRight } from './icons';
@@ -23,6 +23,9 @@ export function AssistantBubble({
   icon,
   renderProducts,
   cardStrings,
+  results,
+  renderResults,
+  renderMarkdown,
 }: {
   content: string;
   products: unknown[];
@@ -36,16 +39,20 @@ export function AssistantBubble({
   /** App-supplied product-card grid (the wire shape of a product is the app's contract). */
   renderProducts?: (products: unknown[]) => ReactNode;
   cardStrings?: Partial<ChatCardStrings>;
+  results?: AssistantDisplayItem['results'];
+  renderResults?: (results: NonNullable<AssistantDisplayItem['results']>, send: (prompt: string) => void) => ReactNode;
+  renderMarkdown?: (source: string) => ReactNode;
 }) {
   return (
     <div className="sc-assistant">
       {content && (
         <div className="sc-assistant-row">
           <span className="sc-avatar">{icon}</span>
-          <div className="sc-assistant-bubble">{content}</div>
+          <div className="sc-assistant-bubble">{renderMarkdown ? renderMarkdown(content) : content}</div>
         </div>
       )}
       {card && <ChatCard card={card} onAnswer={onCardAnswer} strings={cardStrings} />}
+      {results && renderResults ? renderResults(results, onOptionClick) : <>
       {broadenOptions.length > 0 && (
         <div className="sc-broaden">
           {broadenOptions.map((option) => (
@@ -65,6 +72,7 @@ export function AssistantBubble({
       {products.length > 0 && renderProducts ? (
         <div className="sc-products">{renderProducts(products)}</div>
       ) : null}
+      </>}
     </div>
   );
 }

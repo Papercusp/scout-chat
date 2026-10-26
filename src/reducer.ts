@@ -1,4 +1,4 @@
-import type { OpenCardSnapshot } from '@papercusp/chat-protocol';
+import { parseStructuredResults, type OpenCardSnapshot } from '@papercusp/chat-protocol';
 import type { AssistantDisplayItem, BroadenOption, ChatDisplayItem } from './types';
 
 // The pure heart of the chat surface: fold one decoded stream event into the
@@ -34,6 +34,7 @@ export const DISPLAY_CHAT_EVENT_TYPES = new Set([
   'token',
   'products',
   'broaden',
+  'result',
   'card',
   'card_closed',
   'error',
@@ -70,6 +71,9 @@ export function applyChatEvent(
   evt: Record<string, unknown>,
   opts: ApplyChatEventOptions = {},
 ): ChatEventOutcome {
+  if (evt.type !== 'result' && evt.results !== undefined) display = applyChatEvent(display, {
+    type: 'result', blocks: evt.results, conversationId: evt.conversationId, turnId: evt.turnId,
+  }, opts).display;
   switch (evt.type) {
     case 'session':
       return typeof evt.sessionId === 'string'
@@ -101,6 +105,16 @@ export function applyChatEvent(
           broadenOptions: Array.isArray(evt.options) ? (evt.options as BroadenOption[]) : [],
         })),
       };
+    case 'result': {
+      const parsed = parseStructuredResults(evt.blocks);
+      if (!parsed.ok || typeof evt.conversationId !== 'string' || !evt.conversationId
+        || typeof evt.turnId !== 'string' || !evt.turnId) return { display };
+      return { display: patchLastAssistant(display, a => ({ ...a, results: {
+        blocks: [...new Map([...(a.results?.turnId === evt.turnId ? a.results.blocks : []), ...parsed.value]
+          .map(block => [block.id, block])).values()], conversationId: evt.conversationId as string,
+        turnId: evt.turnId as string,
+      }, status: undefined })) };
+    }
     case 'card':
       return {
         display: patchLastAssistant(display, (a) => ({

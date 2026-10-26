@@ -1,4 +1,4 @@
-import type { OpenCardSnapshot } from '@papercusp/chat-protocol';
+import type { OpenCardSnapshot, ChatResultBlock } from '@papercusp/chat-protocol';
 import type { VersionedFetcher } from '@papercusp/data-fetch';
 
 // ─── Display model ───────────────────────────────────────────────────────────
@@ -22,6 +22,8 @@ export type ChatDisplayItem =
       content: string;
       products: unknown[];
       broadenOptions: BroadenOption[];
+      /** Opaque durable references. The host must resolve them before display. */
+      results?: { blocks: ChatResultBlock[]; conversationId: string; turnId: string };
       /** True while tokens are still streaming in. */
       streaming?: boolean;
       /** Transient status shown before the first token (e.g. "Searching the catalog…"). */
