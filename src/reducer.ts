@@ -71,6 +71,10 @@ export function applyChatEvent(
   evt: Record<string, unknown>,
   opts: ApplyChatEventOptions = {},
 ): ChatEventOutcome {
+  const replacedKind = evt.type === 'products' ? 'entity' : evt.type === 'broaden' ? 'suggestion' : null;
+  if (replacedKind) display = patchLastAssistant(display, a => ({ ...a,
+    ...(a.results ? { results: { ...a.results, blocks: a.results.blocks.filter(block => block.kind !== replacedKind) } } : {}),
+  }));
   if (evt.type !== 'result' && evt.results !== undefined) display = applyChatEvent(display, {
     type: 'result', blocks: evt.results, conversationId: evt.conversationId, turnId: evt.turnId,
   }, opts).display;

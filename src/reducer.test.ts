@@ -27,6 +27,24 @@ describe('patchLastAssistant', () => {
 });
 
 describe('applyChatEvent', () => {
+  it('replays durable result IDs once and replaces or clears the matching shopping projection', () => {
+    const block = (id: string) => ({ id, kind: 'entity', title: id, sources: [{ ref: `product:${id}` }] });
+    const frame = (id: string) => ({ type: 'products', products: [{ id }], results: [block(id)],
+      conversationId: 'conversation', turnId: 'turn' });
+    let display = applyChatEvent([assistant()], frame('one')).display;
+    display = applyChatEvent(display, frame('one')).display;
+    let item = display[0] as Extract<ChatDisplayItem, { kind: 'assistant' }>;
+    expect(item.results).toEqual({ conversationId: 'conversation', turnId: 'turn', blocks: [block('one')] });
+    display = applyChatEvent(display, frame('two')).display;
+    item = display[0] as Extract<ChatDisplayItem, { kind: 'assistant' }>;
+    expect(item.products).toEqual([{ id: 'two' }]);
+    expect(item.results?.blocks).toEqual([block('two')]);
+    display = applyChatEvent(display, { type: 'products', products: [] }).display;
+    item = display[0] as Extract<ChatDisplayItem, { kind: 'assistant' }>;
+    expect(item.results?.blocks).toEqual([]);
+    expect(item.products).toEqual([]);
+  });
+
   it('appends token content and clears the status', () => {
     let display = [user('q'), assistant({ status: 'Searching…' })];
     display = applyChatEvent(display, { type: 'token', content: 'Hel' }).display;
