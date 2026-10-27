@@ -11,7 +11,7 @@
   },
   "sideEffects": ["*.css"],
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --configLoader runner",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {

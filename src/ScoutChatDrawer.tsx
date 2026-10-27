@@ -137,6 +137,7 @@ export function ScoutChatDrawer({
           ref={contentRef}
           tabIndex={-1}
           aria-label={title}
+          {...(!description ? { 'aria-describedby': undefined } : {})}
           className={contentClassName}
           style={{ ...paneStyle, ...contentStyle }}
         >

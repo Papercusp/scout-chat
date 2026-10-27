@@ -56,6 +56,18 @@ const renderDrawer = (body?: ReactNode) =>
   );
 
 describe('ScoutChatDrawer initial focus', () => {
+  it('associates a supplied description with the dialog', async () => {
+    const user = userEvent.setup();
+    render(<ScoutChatDrawer launcherAriaLabel={LAUNCHER_LABEL} title="Scout"
+      description="Ask about products and your cart" launcher={<span>Ask Scout</span>}>
+      {() => <textarea aria-label="Ask a question" />}
+    </ScoutChatDrawer>);
+    await user.click(screen.getByRole('button', { name: LAUNCHER_LABEL }));
+    const dialog = await screen.findByRole('dialog');
+    const description = document.getElementById(dialog.getAttribute('aria-describedby')!);
+    expect(description?.textContent).toBe('Ask about products and your cart');
+  });
+
   it('moves focus off the background launcher and into the pane on open', async () => {
     const user = userEvent.setup();
     renderDrawer();
@@ -67,6 +79,7 @@ describe('ScoutChatDrawer initial focus', () => {
     await waitFor(() => expect(document.activeElement).toBe(field));
     // The regression this guards: activeElement stranded on the trigger.
     expect(document.activeElement).not.toBe(launcher);
+    expect(screen.getByRole('dialog').hasAttribute('aria-describedby')).toBe(false);
   });
 
   it('falls back to the pane itself when it holds no focusable control', async () => {
