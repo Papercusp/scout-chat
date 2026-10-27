@@ -111,12 +111,17 @@ export function applyChatEvent(
       };
     case 'result': {
       const parsed = parseStructuredResults(evt.blocks);
-      if (!parsed.ok || typeof evt.conversationId !== 'string' || !evt.conversationId
-        || typeof evt.turnId !== 'string' || !evt.turnId) return { display };
+      // Capture the narrowed ids: a property narrowing on `evt` does not survive
+      // into the callback below, so comparing against `evt.turnId` there left
+      // `a.results` possibly undefined (TS18048, which failed the sidestage build).
+      const conversationId = evt.conversationId;
+      const turnId = evt.turnId;
+      if (!parsed.ok || typeof conversationId !== 'string' || !conversationId
+        || typeof turnId !== 'string' || !turnId) return { display };
       return { display: patchLastAssistant(display, a => ({ ...a, results: {
-        blocks: [...new Map([...(a.results?.turnId === evt.turnId ? a.results.blocks : []), ...parsed.value]
-          .map(block => [block.id, block])).values()], conversationId: evt.conversationId as string,
-        turnId: evt.turnId as string,
+        blocks: [...new Map([...(a.results?.turnId === turnId ? a.results.blocks : []), ...parsed.value]
+          .map(block => [block.id, block])).values()], conversationId,
+        turnId,
       }, status: undefined })) };
     }
     case 'card':
